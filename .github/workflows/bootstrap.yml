@@ -21,7 +21,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat .bootstrap/part-*.b64 > /tmp/shift-manager-package.b64
+          cat \
+            .bootstrap/part-00.b64 \
+            .bootstrap/part-01.b64 \
+            .bootstrap/part-02.b64 \
+            .bootstrap/part-03.b64 \
+            .bootstrap/fix04-0.b64 \
+            .bootstrap/fix04-1a.b64 \
+            .bootstrap/fix04-1b.b64 \
+            .bootstrap/fix04-1c.b64 \
+            .bootstrap/fix04-1d.b64 \
+            .bootstrap/fix04-2.b64 \
+            .bootstrap/fix04-3.b64 \
+            .bootstrap/part-05.b64 \
+            .bootstrap/part-06.b64 \
+            .bootstrap/part-07.b64 \
+            > /tmp/shift-manager-package.b64
           base64 -d /tmp/shift-manager-package.b64 > /tmp/shift-manager-package.zip
           rm -rf /tmp/shift-manager-unpacked
           mkdir -p /tmp/shift-manager-unpacked
