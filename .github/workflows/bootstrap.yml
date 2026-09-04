@@ -1,0 +1,55 @@
+name: Bootstrap app files
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/bootstrap.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Rebuild package and verify source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .bootstrap/part-*.b64 > /tmp/shift-manager-package.b64
+          base64 -d /tmp/shift-manager-package.b64 > /tmp/shift-manager-package.zip
+          rm -rf /tmp/shift-manager-unpacked
+          mkdir -p /tmp/shift-manager-unpacked
+          unzip -q /tmp/shift-manager-package.zip -d /tmp/shift-manager-unpacked
+          cd /tmp/shift-manager-unpacked/shift_manager_github_ready
+          python3 scripts/predeploy_check.py
+
+      - name: Install verified app files into repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC=/tmp/shift-manager-unpacked/shift_manager_github_ready
+          rm -rf site scripts
+          cp -a "$SRC/site" ./site
+          cp -a "$SRC/scripts" ./scripts
+          cp "$SRC/README.md" ./README.md
+          cp "$SRC/PREDEPLOY_CHECKLIST.md" ./PREDEPLOY_CHECKLIST.md
+
+      - name: Commit verified app files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md PREDEPLOY_CHECKLIST.md scripts site
+          if git diff --cached --quiet; then
+            echo "No app-file changes needed."
+            exit 0
+          fi
+          git commit -m "Add verified shift manager app files"
+          git push origin HEAD:main
