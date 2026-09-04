@@ -1,36 +1,35 @@
 # デプロイ直前チェックリスト
 
-## 現在の状態
+## 現在の停止位置
 
-- [x] GitHub Pages公開対象を `site/` に分離
-- [x] `index.html` / `manifest.webmanifest` / `sw.js` / PWAアイコンを配置
-- [x] PWA用アイコン 192px / 512px を確認
-- [x] manifest JSONを検証
-- [x] HTML内の相対パスを検証
-- [x] インラインJavaScriptの構文を検証
-- [x] Service Workerのキャッシュ対象を検証
-- [x] v2の主要機能マーカーを確認
-- [x] 通常pushでは自動デプロイしない構成
-- [x] GitHub Pagesデプロイは手動実行のみ
+**まだGitHub Pagesへ公開しない。**
+通常のpushでは検証CIだけが動き、Pagesデプロイは手動実行しない限り開始されない。
 
-## GitHubへpushした後に確認する項目
+## GitHub上で確認する項目
 
-1. Actions の `Pre-deploy checks` が成功していること
-2. `Deploy GitHub Pages` が**まだ実行されていない**こと
-3. `Settings > Pages` の Source を `GitHub Actions` にすること
-4. 公開直前に `site/index.html` のUIと仕様を最終確認すること
-5. 問題なければ `Actions > Deploy GitHub Pages > Run workflow` を実行すること
+- [ ] `Pre-deploy checks` が緑（PASS）
+- [ ] `site/index.html` が意図したv2になっている
+- [ ] `site/manifest.webmanifest` と2サイズのアイコンがある
+- [ ] `site/sw.js` がある
+- [ ] `.github/workflows/deploy-pages.yml` のトリガーが `workflow_dispatch` のみ
+- [ ] GitHub PagesのSourceをまだ変更していない、または公開を実行していない
 
-## 公開後の最終確認
+## 公開ボタンを押す直前
 
-- PWAインストール可能
-- 従業員追加・編集・削除
-- シフト追加・編集・削除
-- 週/月/一覧切替
-- 翌週コピー
-- 必要人数不足チェック
-- 出勤可能時間警告
-- CSV出力
-- バックアップ/復元
-- 再読み込み後も保存データが残る
-- オフライン再起動
+- [ ] Settings > Pages > Source = GitHub Actions
+- [ ] Actions > Deploy GitHub Pages を開く
+- [ ] Run workflow を押す前にmainの最新コミットを確認
+
+## 公開後の最終動作確認
+
+- [ ] 初回表示
+- [ ] 従業員追加
+- [ ] シフト追加・編集・削除
+- [ ] 週/月/一覧切替
+- [ ] 翌週コピー
+- [ ] 休み/希望休/有給/未定
+- [ ] 必要人数不足表示
+- [ ] CSV出力
+- [ ] JSONバックアップ/復元
+- [ ] ページ再読込後もデータ保持
+- [ ] Galaxy/iPhoneでホーム画面追加/PWA起動
