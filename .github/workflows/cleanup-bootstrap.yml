@@ -1,0 +1,32 @@
+name: Cleanup bootstrap files
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/cleanup-bootstrap.yml
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Remove temporary bootstrap files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf .bootstrap
+          rm -f .cleanup-marker
+          rm -f .github/workflows/bootstrap.yml
+          rm -f .github/workflows/cleanup-bootstrap.yml
+          git add -A
+          git commit -m "Remove temporary bootstrap files"
+          git push origin HEAD:main
