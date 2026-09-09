@@ -37,10 +37,12 @@
 
 公開先: `https://longchanp7-hub.github.io/shift-manager-app/`
 
-自動デプロイは意図的に無効です。
+通常のmainへのpushでは公開されません。公開は明示操作だけです。
 
 - `verify.yml`: mainへのpush/PRで検証のみ実行
-- `deploy-pages.yml`: `workflow_dispatch` の手動実行だけで公開
+- `deploy-pages.yml`: GitHub画面からの手動実行、または `.github/deploy-trigger` 更新時のみ公開
+- `.github/deploy-trigger`: ChatGPTから明示的に公開を依頼されたときに更新する専用トリガー
+- 公開前に `scripts/predeploy_check.py` をデプロイジョブ内でも再実行
 - 公開対象: `site/`
 
 ローカル検証:
@@ -52,5 +54,6 @@ python3 scripts/predeploy_check.py
 ## 更新を公開するとき
 
 1. `Pre-deploy checks` がPASSしていることを確認
-2. `Actions > Deploy GitHub Pages > Run workflow` を実行
-3. 公開URLでPWA・追加/編集/保存・再読込を最終確認
+2. ユーザーが明示的に公開を指示する
+3. GitHub画面から `Deploy GitHub Pages > Run workflow` を実行するか、ChatGPTが `.github/deploy-trigger` を更新
+4. 公開URLでPWA・追加/編集/保存・再読込を最終確認
