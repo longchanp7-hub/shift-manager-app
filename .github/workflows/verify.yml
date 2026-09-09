@@ -1,6 +1,6 @@
 name: Pre-deploy checks
 
-# Final verification gate before any manual Pages deployment.
+# Final verification gate for the Level 1 customization build before any manual Pages deployment.
 on:
   push:
     branches: [main]
