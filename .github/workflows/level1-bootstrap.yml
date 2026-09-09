@@ -1,0 +1,48 @@
+name: Apply Level 1 customization update
+
+on:
+  push:
+    branches: [level1-customization]
+    paths:
+      - '.github/workflows/level1-bootstrap.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout staging branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct verified update
+        run: |
+          cat .level1/part* | base64 -d > /tmp/level1_update.zip
+          echo "1ac4981a05263df5d6bbeaec947ac736fa9506af0ef20f5e4fe1e541344288b8  /tmp/level1_update.zip" | sha256sum -c -
+          rm -rf /tmp/level1_update
+          mkdir -p /tmp/level1_update
+          unzip -q /tmp/level1_update.zip -d /tmp/level1_update
+
+      - name: Apply to latest main
+        run: |
+          git fetch origin main
+          git checkout -B main origin/main
+          cp /tmp/level1_update/site/index.html site/index.html
+          cp /tmp/level1_update/site/sw.js site/sw.js
+          cp /tmp/level1_update/site/manifest.webmanifest site/manifest.webmanifest
+          cp /tmp/level1_update/README.md README.md
+          cp /tmp/level1_update/PREDEPLOY_CHECKLIST.md PREDEPLOY_CHECKLIST.md
+          cp /tmp/level1_update/scripts/predeploy_check.py scripts/predeploy_check.py
+          python3 scripts/predeploy_check.py
+
+      - name: Commit Level 1 customization
+        run: |
+          git config user.name "longchanp7-hub"
+          git config user.email "longchanp7@gmail.com"
+          git add site/index.html site/sw.js site/manifest.webmanifest README.md PREDEPLOY_CHECKLIST.md scripts/predeploy_check.py
+          git diff --cached --quiet && exit 0
+          git commit -m "Add Level 1 no-code customization"
+          git push origin HEAD:main
