@@ -1,8 +1,14 @@
 name: Deploy GitHub Pages
 
-# Deliberately manual-only so a normal push cannot publish the app.
+# Manual deployment is still available. In addition, changing only the
+# dedicated deploy-trigger file starts a deployment, so ChatGPT can publish
+# after the user explicitly asks for it without enabling auto-deploy on normal pushes.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/deploy-trigger
 
 permissions:
   contents: read
@@ -22,6 +28,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Run pre-deploy checks
+        run: python3 scripts/predeploy_check.py
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload static site
