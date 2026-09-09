@@ -15,6 +15,8 @@ required = [
     SITE / "index.html",
     SITE / "manifest.webmanifest",
     SITE / "sw.js",
+    SITE / "level2.css",
+    SITE / "level2.js",
     SITE / "icon-192.png",
     SITE / "icon-512.png",
     SITE / ".nojekyll",
@@ -94,12 +96,23 @@ if inline:
         finally:
             tmp.unlink(missing_ok=True)
 
+# Level 2 external JavaScript syntax.
+level2_js_path = SITE / "level2.js"
+if level2_js_path.exists():
+    node = shutil.which("node")
+    if not node:
+        fail("node is unavailable; cannot syntax-check level2.js")
+    else:
+        r=subprocess.run([node,"--check",str(level2_js_path)],text=True,capture_output=True)
+        if r.returncode: fail("level2.js syntax error: "+(r.stderr or r.stdout).strip())
+        else: ok("Level 2 JavaScript syntax OK")
+
 # Service worker should cache only files that exist.
 sw=(SITE/"sw.js").read_text(encoding="utf-8")
 for asset in re.findall(r'"(\./[^"?]+)"', sw):
     clean=asset[2:]
     if clean == "": continue
-    if clean == "index.html" or clean.endswith((".webmanifest",".png")):
+    if clean == "index.html" or clean.endswith((".webmanifest",".png",".css",".js")):
         if not (SITE/clean).exists(): fail(f"service worker asset missing: {asset}")
 ok("service worker asset list checked")
 
@@ -121,6 +134,17 @@ markers = ["今週→翌週コピー","希望休","有給","必要人数","CSV",
 for marker in markers:
     if marker not in html: fail(f"expected app feature marker missing: {marker}")
 if all(m in html for m in markers): ok("expected v3 customization markers present")
+
+level2_js = (SITE/"level2.js").read_text(encoding="utf-8") if (SITE/"level2.js").exists() else ""
+level2_css = (SITE/"level2.css").read_text(encoding="utf-8") if (SITE/"level2.css").exists() else ""
+level2_markers = ["shift-manager-feature-pack","featurePackModal","mobileBottomNav","mobileAgenda","BUILT_INS"]
+for marker in level2_markers:
+    if marker not in level2_js: fail(f"expected Level 2 JS marker missing: {marker}")
+css_markers = ["mobile-bottom-nav","mobile-day-card","pack-card-grid"]
+for marker in css_markers:
+    if marker not in level2_css: fail(f"expected Level 2 CSS marker missing: {marker}")
+if all(m in level2_js for m in level2_markers) and all(m in level2_css for m in css_markers):
+    ok("expected Level 2 feature-pack/mobile markers present")
 
 print("PRE-DEPLOY CHECK")
 for n in notes: print(f"  PASS  {n}")

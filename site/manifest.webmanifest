@@ -1,7 +1,7 @@
 {
   "name": "かんたんシフト管理",
   "short_name": "シフト管理",
-  "description": "10人以下向け・設定画面でカスタマイズできる軽量ローカルシフト管理アプリ",
+  "description": "10人以下向けの軽量シフト管理PWA。機能パックによるカスタマイズとスマホ最適化に対応。",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
