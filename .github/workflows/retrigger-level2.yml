@@ -1,0 +1,26 @@
+name: Retry Level 2 upgrade
+
+on:
+  push:
+    branches: [level2-mobile-upgrade]
+    paths:
+      - .github/workflows/retrigger-level2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  retrigger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: level2-mobile-upgrade
+      - name: Trigger verified upgrade workflow
+        run: |
+          printf '\n# retrigger: corrected staged chunks\n' >> .github/workflows/apply-level2-mobile.yml
+          git config user.name "longchanp7-hub"
+          git config user.email "longchanp7@gmail.com"
+          git add .github/workflows/apply-level2-mobile.yml
+          git commit -m "Retry verified Level 2 mobile upgrade"
+          git push origin HEAD:level2-mobile-upgrade
