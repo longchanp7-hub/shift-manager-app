@@ -1,0 +1,120 @@
+name: Apply Level 2 mobile upgrade
+
+on:
+  push:
+    branches: [level2-mobile-upgrade]
+    paths:
+      - .github/workflows/apply-level2-mobile.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout staging branch
+        uses: actions/checkout@v6
+        with:
+          ref: level2-mobile-upgrade
+          fetch-depth: 0
+
+      - name: Reconstruct and verify Level 2 assets
+        shell: bash
+        run: |
+          cat .level2/level2.css.part* | base64 -d > /tmp/level2.css
+          cat .level2/level2.js.part* | base64 -d > /tmp/level2.js
+          echo "9689e80bbe7cf049e0d89fe90d24e0de0b8a1751941ee1d943de537e9311c8b7  /tmp/level2.css" | sha256sum -c -
+          echo "fc7ac2bbeb99bc5cfbf7703a52178d621e3c22f13c8b5908dd3c12f9f9d30bf5  /tmp/level2.js" | sha256sum -c -
+          node --check /tmp/level2.js
+
+      - name: Apply upgrade to latest main
+        shell: bash
+        run: |
+          git fetch origin main
+          git checkout -B main origin/main
+          cp /tmp/level2.css site/level2.css
+          cp /tmp/level2.js site/level2.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, re
+
+          root = Path('.')
+          site = root / 'site'
+
+          # Load Level 2 assets after the existing v3 app, keeping the core stable.
+          p = site / 'index.html'
+          html = p.read_text(encoding='utf-8')
+          if 'href="level2.css"' not in html:
+              html = html.replace('</head>', '<link rel="stylesheet" href="level2.css" />\n</head>')
+          if 'src="level2.js"' not in html:
+              html = html.replace('</body>', '<script src="level2.js"></script>\n</body>')
+          p.write_text(html, encoding='utf-8')
+
+          # New cache name forces already-installed PWAs to fetch the Level 2 assets.
+          p = site / 'sw.js'
+          sw = p.read_text(encoding='utf-8')
+          sw = re.sub(r'const CACHE = "[^"]+";', 'const CACHE = "shift-manager-v4-20260910";', sw, count=1)
+          m = re.search(r'const ASSETS = \[(.*?)\];', sw, re.S)
+          if not m:
+              raise SystemExit('service worker asset list not found')
+          assets = m.group(1)
+          for item in ['"./level2.css"', '"./level2.js"']:
+              if item not in assets:
+                  assets += ', ' + item
+          sw = sw[:m.start(1)] + assets + sw[m.end(1):]
+          p.write_text(sw, encoding='utf-8')
+
+          # Update install metadata without changing PWA scope or start_url.
+          p = site / 'manifest.webmanifest'
+          manifest = json.loads(p.read_text(encoding='utf-8'))
+          manifest['description'] = '10人以下向けの軽量シフト管理PWA。機能パックによるカスタマイズとスマホ最適化に対応。'
+          p.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          # Expand CI to validate the new external assets and Level 2 feature markers.
+          p = root / 'scripts/predeploy_check.py'
+          s = p.read_text(encoding='utf-8')
+          if 'SITE / "level2.css"' not in s:
+              s = s.replace('    SITE / "sw.js",\n', '    SITE / "sw.js",\n    SITE / "level2.css",\n    SITE / "level2.js",\n')
+          s = s.replace('clean.endswith((".webmanifest",".png"))', 'clean.endswith((".webmanifest",".png",".css",".js"))')
+          if '# Level 2 external JavaScript syntax.' not in s:
+              anchor = '# Service worker should cache only files that exist.\n'
+              extra = '''# Level 2 external JavaScript syntax.\nlevel2_js_path = SITE / "level2.js"\nif level2_js_path.exists():\n    node = shutil.which("node")\n    if not node:\n        fail("node is unavailable; cannot syntax-check level2.js")\n    else:\n        r=subprocess.run([node,"--check",str(level2_js_path)],text=True,capture_output=True)\n        if r.returncode: fail("level2.js syntax error: "+(r.stderr or r.stdout).strip())\n        else: ok("Level 2 JavaScript syntax OK")\n\n'''
+              s = s.replace(anchor, extra + anchor)
+          if 'expected Level 2 feature-pack/mobile markers present' not in s:
+              old = 'if all(m in html for m in markers): ok("expected v3 customization markers present")\n'
+              new = old + '''\nlevel2_js = (SITE/"level2.js").read_text(encoding="utf-8") if (SITE/"level2.js").exists() else ""\nlevel2_css = (SITE/"level2.css").read_text(encoding="utf-8") if (SITE/"level2.css").exists() else ""\nlevel2_markers = ["shift-manager-feature-pack","featurePackModal","mobileBottomNav","mobileAgenda","BUILT_INS"]\nfor marker in level2_markers:\n    if marker not in level2_js: fail(f"expected Level 2 JS marker missing: {marker}")\ncss_markers = ["mobile-bottom-nav","mobile-day-card","pack-card-grid"]\nfor marker in css_markers:\n    if marker not in level2_css: fail(f"expected Level 2 CSS marker missing: {marker}")\nif all(m in level2_js for m in level2_markers) and all(m in level2_css for m in css_markers):\n    ok("expected Level 2 feature-pack/mobile markers present")\n'''
+              if old not in s:
+                  raise SystemExit('predeploy marker anchor not found')
+              s = s.replace(old, new)
+          p.write_text(s, encoding='utf-8')
+
+          # Documentation: keep the existing history and add the new operating model.
+          p = root / 'README.md'
+          readme = p.read_text(encoding='utf-8')
+          if '## v4: レベル2機能パック + スマホUI' not in readme:
+              readme += '''\n\n## v4: レベル2機能パック + スマホUI\n\n### 機能パック\n\n- 現在のカスタマイズ設定をJSONとして書き出し / コピー\n- JSONファイルまたは貼り付けJSONを安全に検証して読み込み\n- 「追加・更新」と「カスタマイズ置換」の2方式\n- 必要人数テンプレートは任意で適用\n- 飲食店 / バー・スナック / 美容・サロン / 小売のプリセット\n- 従業員・シフト実績そのものは機能パックに含めない\n\n### スマホUI\n\n- 週 / 月を縦スクロールのアジェンダ表示へ最適化\n- 下部固定ナビ（週 / 月 / 一覧 / スタッフ / 設定）\n- スタッフ管理をボトムシート化\n- シフト追加のフローティングボタン\n- 一覧表をスマホではカード表示\n- 入力モーダルをボトムシート化し、タップ領域を拡大\n- PWAのsafe-areaに対応\n\nLevel 2は既存の `simple_shift_manager_v3` データ形式を維持するため、v3の従業員・シフトデータをそのまま使えます。\n'''
+          p.write_text(readme, encoding='utf-8')
+
+          p = root / 'PREDEPLOY_CHECKLIST.md'
+          checklist = p.read_text(encoding='utf-8')
+          if '## Level 2 / スマホUI確認' not in checklist:
+              checklist += '''\n\n## Level 2 / スマホUI確認\n\n- [ ] 機能パック画面が開く\n- [ ] JSON書き出し / コピー / ファイル読み込み / 貼り付け読み込み\n- [ ] 追加・更新 / 置き換えを選択できる\n- [ ] 飲食店 / バー・スナック / 美容・サロン / 小売プリセットを選択できる\n- [ ] スマホで週・月が縦型アジェンダ表示になる\n- [ ] 下部ナビから週 / 月 / 一覧 / スタッフ / 設定へ移動できる\n- [ ] スタッフと各編集画面がスマホでボトムシート表示になる\n- [ ] スマホの＋ボタンからシフト追加できる\n- [ ] PWA更新後にlevel2.css / level2.jsがオフラインキャッシュされる\n'''
+          p.write_text(checklist, encoding='utf-8')
+          PY
+
+          python3 scripts/predeploy_check.py
+          grep -q 'level2.css' site/index.html
+          grep -q 'level2.js' site/index.html
+          grep -q 'shift-manager-v4-20260910' site/sw.js
+          sha256sum site/level2.css site/level2.js
+
+      - name: Commit Level 2 upgrade to main
+        shell: bash
+        run: |
+          git config user.name "longchanp7-hub"
+          git config user.email "longchanp7@gmail.com"
+          git add site/index.html site/level2.css site/level2.js site/sw.js site/manifest.webmanifest scripts/predeploy_check.py README.md PREDEPLOY_CHECKLIST.md
+          git diff --cached --quiet && exit 0
+          git commit -m "Add Level 2 feature packs and mobile-first UI"
+          git push origin HEAD:main
