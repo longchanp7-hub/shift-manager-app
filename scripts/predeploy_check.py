@@ -103,14 +103,16 @@ for asset in re.findall(r'"(\./[^"?]+)"', sw):
         if not (SITE/clean).exists(): fail(f"service worker asset missing: {asset}")
 ok("service worker asset list checked")
 
-# Deployment workflow must remain manual-only at this checkpoint.
+# Deployment workflow must be explicit-only: manual dispatch or the dedicated trigger file.
 deploy=(ROOT/".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
 if "workflow_dispatch:" not in deploy:
     fail("deploy workflow is not manually triggerable")
-# Exclude comments before checking for push trigger.
 active="\n".join(line for line in deploy.splitlines() if not line.lstrip().startswith("#"))
-if re.search(r"(?m)^\s*push\s*:", active):
-    fail("deploy workflow contains push trigger; pre-deploy state must be manual-only")
+has_push = bool(re.search(r"(?m)^\s*push\s*:", active))
+if has_push and ".github/deploy-trigger" not in active:
+    fail("deploy workflow contains an unrestricted push trigger")
+elif has_push:
+    ok("deploy workflow uses dedicated explicit trigger")
 else:
     ok("deploy workflow is manual-only")
 
