@@ -31,6 +31,9 @@
 
 ## 公開方式
 
-`deploy-pages.yml` は `workflow_dispatch` の手動実行のみ。mainへのpushだけでは公開されません。
+通常のmainへのpushだけでは公開されません。公開方法は次の2つだけです。
 
-更新公開時は `Actions > Deploy GitHub Pages > Run workflow` を明示的に実行します。
+- GitHub画面の `Deploy GitHub Pages > Run workflow`
+- `.github/deploy-trigger` を更新する明示的な公開トリガー
+
+ChatGPTに「公開して」「デプロイして」と明示的に依頼された場合は、`.github/deploy-trigger` を更新してデプロイを開始できます。デプロイジョブ内でも `scripts/predeploy_check.py` を再実行し、検証に失敗した場合は公開しません。
