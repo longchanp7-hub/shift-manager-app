@@ -1,41 +1,36 @@
 # デプロイ直前チェックリスト
 
-## 現在の停止位置
+## v3 レベル1カスタマイズ
 
-**まだGitHub Pagesへ公開しない。**
-通常のpushでは検証CIだけが動き、Pagesデプロイは手動実行しない限り開始されない。
+- [ ] `Pre-deploy checks` が緑（PASS）
+- [ ] 「⚙ カスタマイズ」が開く
+- [ ] アプリ名・サブタイトル・起動時表示を変更できる
+- [ ] 表示機能のON/OFFが反映される
+- [ ] カスタムシフト種別を追加できる
+- [ ] カスタム種別の時間入力 / 勤務集計 / 必要人数算入が反映される
+- [ ] 従業員カスタム項目（文字 / 数値 / 選択 / はい・いいえ）を追加できる
+- [ ] 従業員編集画面でカスタム項目を入力・保存できる
+- [ ] 週勤務時間上限 / 連続勤務日数の警告が出る
+- [ ] CSVにカスタム項目とカスタム種別名が出る
+- [ ] v2のlocalStorageデータがv3へ移行される
+- [ ] バックアップ / 復元でカスタマイズ設定も保持される
 
-確認済みリポジトリ: `longchanp7-hub/shift-manager-app`
-
-## GitHub上で確認する項目
-
-- [x] リポジトリ名が `shift-manager-app`（末尾ハイフンなし）
-- [ ] 最新の `Pre-deploy checks` が緑（PASS）
-- [x] `site/index.html` がv2構成
-- [x] `site/manifest.webmanifest` と192/512pxアイコンがある
-- [x] `site/sw.js` がある
-- [x] `.github/workflows/deploy-pages.yml` のトリガーが `workflow_dispatch` のみ
-- [x] PWAの `start_url` / `scope` / Service Worker資産参照が相対パス
-- [x] GitHub Pagesはまだ未公開
-
-## 公開ボタンを押す直前
-
-- [ ] `Settings > Pages > Source = GitHub Actions`
-- [ ] `Actions > Deploy GitHub Pages` を開く
-- [ ] `Run workflow` を押す前にmainの最新コミットを確認
-
-> 現在GitHub API上の `has_pages` は `false`。そのため初回公開前に Source を GitHub Actions に設定する必要がある。
-
-## 公開後の最終動作確認
+## 既存機能の回帰確認
 
 - [ ] 初回表示
-- [ ] 従業員追加
+- [ ] 従業員追加・編集・削除
 - [ ] シフト追加・編集・削除
-- [ ] 週/月/一覧切替
+- [ ] 週 / 月 / 一覧切替
 - [ ] 翌週コピー
-- [ ] 休み/希望休/有給/未定
+- [ ] 休み / 希望休 / 有給 / 未定
 - [ ] 必要人数不足表示
 - [ ] CSV出力
-- [ ] JSONバックアップ/復元
+- [ ] JSONバックアップ / 復元
 - [ ] ページ再読込後もデータ保持
-- [ ] Galaxy/iPhoneでホーム画面追加/PWA起動
+- [ ] Galaxy / iPhoneでホーム画面追加・PWA起動
+
+## 公開方式
+
+`deploy-pages.yml` は `workflow_dispatch` の手動実行のみ。mainへのpushだけでは公開されません。
+
+更新公開時は `Actions > Deploy GitHub Pages > Run workflow` を明示的に実行します。

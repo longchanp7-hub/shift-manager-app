@@ -1,4 +1,4 @@
-const CACHE = "shift-manager-v2-20260825";
+const CACHE = "shift-manager-v3-20260909";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", event => {

@@ -115,10 +115,10 @@ else:
     ok("deploy workflow is manual-only")
 
 # Basic feature markers to catch accidental wrong-file deployment.
-markers = ["今週→翌週コピー","希望休","有給","必要人数","CSV","元に戻す","serviceWorker"]
+markers = ["今週→翌週コピー","希望休","有給","必要人数","CSV","元に戻す","serviceWorker","⚙ カスタマイズ","customFields","shiftTypes","maxWeeklyHours","maxConsecutiveDays","simple_shift_manager_v3"]
 for marker in markers:
     if marker not in html: fail(f"expected app feature marker missing: {marker}")
-if all(m in html for m in markers): ok("expected v2 feature markers present")
+if all(m in html for m in markers): ok("expected v3 customization markers present")
 
 print("PRE-DEPLOY CHECK")
 for n in notes: print(f"  PASS  {n}")

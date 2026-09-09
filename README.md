@@ -19,9 +19,25 @@
 - PWA / オフライン対応
 - プッシュ通知なし
 
-## GitHub Pages公開前の状態
+## v3: レベル1カスタマイズ
 
-このリポジトリは意図的に **自動デプロイを無効** にしています。
+画面上の **「⚙ カスタマイズ」** から、コードを書かずに設定を変更できます。
+
+- アプリ内名称・サブタイトル・起動時表示（週 / 月 / 一覧）
+- 必要人数、集計、警告、翌週コピー、印刷、CSVなどの表示ON/OFF
+- シフト種別の追加・名称変更・色変更・使用ON/OFF
+- 種別ごとの「時間入力」「勤務時間集計」「必要人数への算入」
+- 従業員カスタム項目（文字 / 数値 / 選択式 / はい・いいえ、最大12項目）
+- 週の勤務時間上限と連続勤務日数上限の警告ルール
+- カスタム項目を含むCSV出力
+- v2データからv3へ自動移行
+- カスタマイズ設定を保ったまま従業員・シフトだけ全消去
+
+## GitHub Pages
+
+公開先: `https://longchanp7-hub.github.io/shift-manager-app/`
+
+自動デプロイは意図的に無効です。
 
 - `verify.yml`: mainへのpush/PRで検証のみ実行
 - `deploy-pages.yml`: `workflow_dispatch` の手動実行だけで公開
@@ -33,10 +49,8 @@
 python3 scripts/predeploy_check.py
 ```
 
-## 公開するとき
+## 更新を公開するとき
 
-1. GitHubの `Settings > Pages` で Source を **GitHub Actions** にする
-2. `Actions > Deploy GitHub Pages > Run workflow` を実行する
-3. 公開URLでPWA・追加/編集/保存・再読込を最終確認する
-
-`deploy-pages.yml` はGitHub公式のPages用Actions構成に合わせています。
+1. `Pre-deploy checks` がPASSしていることを確認
+2. `Actions > Deploy GitHub Pages > Run workflow` を実行
+3. 公開URLでPWA・追加/編集/保存・再読込を最終確認
