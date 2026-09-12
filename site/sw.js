@@ -1,4 +1,4 @@
-const CACHE = "shift-manager-v4-20260910";
+const CACHE = "shift-manager-v4-20260912";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./level2.css", "./level2.js"];
 
 self.addEventListener("install", event => {
@@ -17,18 +17,39 @@ self.addEventListener("activate", event => {
   );
 });
 
+self.addEventListener("message", event => {
+  if (event.data === "SKIP_WAITING") self.skipWaiting();
+});
+
+function isAppShell(request) {
+  if (request.mode === "navigate") return true;
+  const dest = request.destination;
+  if (dest === "script" || dest === "style" || dest === "document" || dest === "manifest") return true;
+  try {
+    const path = new URL(request.url).pathname;
+    return /(?:\/)?(?:index\.html|level2\.js|level2\.css|sw\.js|manifest\.webmanifest)$/.test(path);
+  } catch {
+    return false;
+  }
+}
+
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
 
-  if (event.request.mode === "navigate") {
+  if (isAppShell(event.request)) {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE).then(cache => cache.put("./index.html", copy));
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE).then(cache => {
+              cache.put(event.request, copy);
+              if (event.request.mode === "navigate") cache.put("./index.html", response.clone());
+            });
+          }
           return response;
         })
-        .catch(() => caches.match("./index.html"))
+        .catch(() => caches.match(event.request).then(cached => cached || caches.match("./index.html")))
     );
     return;
   }
