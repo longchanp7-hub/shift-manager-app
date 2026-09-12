@@ -1,2 +1,2 @@
-deploy: level2-mobile-v4-20260910
-reason: Level 2 feature packs and mobile-first UI
+deploy: level2-mobile-v4.1-20260912
+reason: PWA network-first cache, mobile copy-week/feature-pack, fold mid-width layout
