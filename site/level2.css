@@ -34,3 +34,7 @@
   .month-grid{min-width:0;grid-template-columns:repeat(7,minmax(0,1fr))}
   .calendar-wrap,.month-wrap,.table-wrap{overflow:auto}
 }
+
+html,body{max-width:100%}
+.calendar{min-width:940px;grid-template-columns:105px repeat(7,minmax(120px,1fr))}
+.month-grid{min-width:770px;grid-template-columns:repeat(7,minmax(110px,1fr))}
