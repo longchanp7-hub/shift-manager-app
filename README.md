@@ -23,7 +23,7 @@
 
 公開先: `https://longchanp7-hub.github.io/shift-manager-app/`
 
-通常のmainへのpushでは公開されません。公開は明示操作だけです。
+`main` への更新・修正は GitHub Actions で自動デプロイされ、GitHub Pages に反映されます。手動デプロイも可能です。
 
 ## Androidアプリ
 
