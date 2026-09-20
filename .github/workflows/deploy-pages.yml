@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
       - name: Run pre-deploy checks
         run: python3 scripts/predeploy_check.py
       - name: Configure Pages
@@ -32,7 +32,7 @@ jobs:
         with:
           enablement: true
       - name: Upload static site
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./site
       - name: Deploy to GitHub Pages
