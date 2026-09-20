@@ -116,18 +116,19 @@ for asset in re.findall(r'"(\./[^"?]+)"', sw):
         if not (SITE/clean).exists(): fail(f"service worker asset missing: {asset}")
 ok("service worker asset list checked")
 
-# Deployment workflow must be explicit-only: manual dispatch or the dedicated trigger file.
+# Deployment workflow must auto-deploy main updates and remain manually triggerable.
 deploy=(ROOT/".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
 if "workflow_dispatch:" not in deploy:
     fail("deploy workflow is not manually triggerable")
 active="\n".join(line for line in deploy.splitlines() if not line.lstrip().startswith("#"))
 has_push = bool(re.search(r"(?m)^\s*push\s*:", active))
-if has_push and ".github/deploy-trigger" not in active:
-    fail("deploy workflow contains an unrestricted push trigger")
-elif has_push:
-    ok("deploy workflow uses dedicated explicit trigger")
+has_main = bool(re.search(r"(?m)^\s*branches\s*:\s*\[?\s*main\s*\]?", active))
+if not has_push:
+    fail("deploy workflow does not auto-deploy pushes")
+elif not has_main:
+    fail("deploy workflow does not target the main branch")
 else:
-    ok("deploy workflow is manual-only")
+    ok("deploy workflow auto-deploys main updates")
 
 # Basic feature markers to catch accidental wrong-file deployment.
 markers = ["今週→翌週コピー","希望休","有給","必要人数","CSV","元に戻す","serviceWorker","⚙ カスタマイズ","customFields","shiftTypes","maxWeeklyHours","maxConsecutiveDays","simple_shift_manager_v3"]
