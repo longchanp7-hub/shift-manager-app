@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Run pre-deploy checks
         run: python3 scripts/predeploy_check.py
       - name: Configure Pages
@@ -38,3 +38,20 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Install browser test tools
+        run: |
+          npm install --prefix /tmp/shift-browser --no-save --package-lock=false playwright@1.62.1
+          /tmp/shift-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify published app in mobile and desktop browser
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          PLAYWRIGHT_MODULE: /tmp/shift-browser/node_modules/playwright
+        run: node scripts/browser-smoke.cjs
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-evidence
+          path: browser-report
+          if-no-files-found: ignore
+          retention-days: 7
