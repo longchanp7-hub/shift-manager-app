@@ -25,7 +25,7 @@ async function checkViewport(browser, name, viewport) {
   await page.click('#settingsBtn');
   await page.waitForSelector('#settingsModal.show', { state: 'visible' });
   await page.click('[data-close="settingsModal"]');
-  await page.waitForSelector('#settingsModal:not(.show)');
+  await page.waitForFunction(() => !document.querySelector('#settingsModal')?.classList.contains('show'));
 
   await page.click('#addEmployeeBtn');
   await page.waitForSelector('#employeeModal.show', { state: 'visible' });
