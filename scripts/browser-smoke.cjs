@@ -39,6 +39,7 @@ async function checkViewport(browser, name, viewport) {
   if (viewport.width <= 760) {
     await page.click('.mobile-side-close');
     await page.waitForFunction(() => !document.body.classList.contains('mobile-staff-open'));
+    await page.waitForTimeout(300);
   }
 
   const geometry = await page.evaluate(() => ({
