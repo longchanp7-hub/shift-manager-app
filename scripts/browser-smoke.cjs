@@ -27,13 +27,19 @@ async function checkViewport(browser, name, viewport) {
   await page.click('[data-close="settingsModal"]');
   await page.waitForFunction(() => !document.querySelector('#settingsModal')?.classList.contains('show'));
 
-  await page.evaluate(() => document.getElementById('addEmployeeBtn')?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' }));
-  await page.waitForTimeout(200);
+  if (viewport.width <= 760) {
+    await page.click('[data-mobile-action="staff"]');
+    await page.waitForFunction(() => document.body.classList.contains('mobile-staff-open'));
+  }
   await page.click('#addEmployeeBtn');
   await page.waitForSelector('#employeeModal.show', { state: 'visible' });
   await page.fill('#employeeName', '動作確認');
   await page.click('#employeeForm button[type="submit"]');
   await page.waitForFunction(() => document.querySelector('#employeeList')?.textContent.includes('動作確認'));
+  if (viewport.width <= 760) {
+    await page.click('.mobile-side-close');
+    await page.waitForFunction(() => !document.body.classList.contains('mobile-staff-open'));
+  }
 
   const geometry = await page.evaluate(() => ({
     bodyWidth: document.body.scrollWidth,
