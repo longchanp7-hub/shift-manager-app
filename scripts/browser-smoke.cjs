@@ -27,6 +27,8 @@ async function checkViewport(browser, name, viewport) {
   await page.click('[data-close="settingsModal"]');
   await page.waitForFunction(() => !document.querySelector('#settingsModal')?.classList.contains('show'));
 
+  await page.evaluate(() => document.getElementById('addEmployeeBtn')?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' }));
+  await page.waitForTimeout(200);
   await page.click('#addEmployeeBtn');
   await page.waitForSelector('#employeeModal.show', { state: 'visible' });
   await page.fill('#employeeName', '動作確認');
