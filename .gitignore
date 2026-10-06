@@ -1,0 +1,10 @@
+.DS_Store
+*.log
+.env
+.env.*
+node_modules/
+browser-report/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
