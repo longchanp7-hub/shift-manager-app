@@ -1,4 +1,5 @@
-const CACHE = "shift-manager-v4-20261006";
+const CACHE_PREFIX = "shift-manager-";
+const CACHE = "shift-manager-v5-20261011";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./level2.css", "./level2.js"];
 
 self.addEventListener("install", event => {
@@ -12,7 +13,7 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))
+      .then(keys => Promise.all(keys.filter(key => key.startsWith(CACHE_PREFIX) && key !== CACHE).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });

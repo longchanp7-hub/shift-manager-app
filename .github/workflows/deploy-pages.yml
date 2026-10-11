@@ -27,6 +27,8 @@ jobs:
         uses: actions/checkout@v7
       - name: Run pre-deploy checks
         run: python3 scripts/predeploy_check.py
+      - name: Test service-worker cache isolation
+        run: node --test scripts/sw-cache.test.cjs
       - name: Configure Pages
         uses: actions/configure-pages@v6
         with:
